@@ -8,9 +8,11 @@ export interface Movie {
   theaters: Pick<Theater, "_id" | "name">[];
   description: string;
   thumbnail: string;
+  banner: string;
   price: number;
   available: boolean;
   bonus: string;
   thumbnailUrl: string;
+  bannerUrl: string;
   id: string;
 }

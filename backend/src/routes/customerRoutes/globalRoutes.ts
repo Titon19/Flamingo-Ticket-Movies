@@ -13,6 +13,8 @@ import {
 } from "../../controllers/ticketConctroller";
 import { validateRequest } from "../../middlewares/validateRequest";
 import { transactionSchema } from "../../utils/zodSchema";
+import { getTheaters } from "../../controllers/theaterController";
+import { getCities } from "../../controllers/cityController";
 
 const globalRoutes = express.Router();
 
@@ -28,4 +30,7 @@ globalRoutes.post(
 );
 globalRoutes.get("/orders", getOrders);
 globalRoutes.get("/order-detail/:id", getOrderDetail);
+globalRoutes.get("/theaters", getTheaters);
+globalRoutes.get("/cities", getCities);
+
 export default globalRoutes;

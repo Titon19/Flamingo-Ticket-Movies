@@ -20,6 +20,7 @@ import { toast } from "sonner";
 
 const updateMovieSchema = movieSchema.partial({
   thumbnail: true,
+  banner: true,
 });
 
 const useFetchMovieDetail = (itemId: string) => {
@@ -60,7 +61,13 @@ const useGetTheaterSelector = () => {
 const useMovieSubmit = ({ itemId }: { itemId?: string }) => {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{
+    thumbnail: string | null;
+    banner: string | null;
+  }>({
+    thumbnail: null,
+    banner: null,
+  });
 
   const { detail, isLoading } = useFetchMovieDetail(itemId ?? "");
   const { genres, genreSelectorLoading } = useGetGenresSelector();
@@ -115,6 +122,7 @@ const useMovieSubmit = ({ itemId }: { itemId?: string }) => {
       formData.append("theaters", data.theaters.join(", "));
       formData.append("available", String(data.available ? "1" : "0"));
       if (data.thumbnail) formData.append("thumbnail", data.thumbnail);
+      if (data.banner) formData.append("banner", data.banner);
 
       const response = await mutateAsync(formData);
       if (response.status === "Success") {
@@ -129,16 +137,36 @@ const useMovieSubmit = ({ itemId }: { itemId?: string }) => {
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    fieldName: "thumbnail" | "banner"
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
-      form.setValue("thumbnail", file);
+      form.setValue(fieldName, file);
 
       const newPreview = URL.createObjectURL(file);
 
-      setPreview(newPreview);
+      if (fieldName === "thumbnail") {
+        setPreview((prev) => ({ ...prev, thumbnail: newPreview }));
+      } else {
+        setPreview((prev) => ({ ...prev, banner: newPreview }));
+      }
     }
   };
+  // const handleFileBannerChange = (
+  //   event: React.ChangeEvent<HTMLInputElement>
+  // ) => {
+  //   const file = event.target.files?.[0];
+
+  //   if (file) {
+  //     form.setValue("banner", file);
+
+  //     const newPreview = URL.createObjectURL(file);
+
+  //     setPreview(newPreview);
+  //   }
+  // };
 
   const selectedTheaters = form.watch("theaters");
 
@@ -167,7 +195,6 @@ const useMovieSubmit = ({ itemId }: { itemId?: string }) => {
     handleFileChange,
     preview,
     selectedTheaters,
-
     genres,
     genreSelectorLoading,
     theaters,

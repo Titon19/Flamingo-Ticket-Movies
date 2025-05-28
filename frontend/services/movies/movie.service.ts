@@ -14,6 +14,9 @@ export const movieSchema = z.object({
   thumbnail: z.any().refine((file: File) => file?.name, {
     message: "Please upload thumbnail!",
   }),
+  banner: z.any().refine((file: File) => file?.name, {
+    message: "Please upload banner!",
+  }),
   description: z.string().min(3, "Please input description!"),
   price: z.string().min(1, "Please input harga!"),
   bonus: z.string().optional(),
@@ -26,6 +29,7 @@ export const getMovies = async (): Promise<
 > => {
   return await privateInstance.get("/admin/v1/movies");
 };
+
 export const getMovieParams = async ({
   page,
   limit,

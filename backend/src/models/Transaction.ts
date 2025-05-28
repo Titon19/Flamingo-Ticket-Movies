@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { getAssetUrl } from "../utils/helper";
 
 const Schema = mongoose.Schema;
 
@@ -30,12 +31,32 @@ const transactionSchema = new Schema(
     },
 
     movie: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Movie",
+      id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Movie",
+      },
+      title: {
+        type: String,
+      },
+      thumbnail: {
+        type: String,
+      },
+      genre: {
+        type: String,
+      },
     },
+
     theater: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Theater",
+      id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Theater",
+      },
+      name: {
+        type: String,
+      },
+      city: {
+        type: String,
+      },
     },
     date: {
       type: String,
@@ -48,7 +69,17 @@ const transactionSchema = new Schema(
       },
     ],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    virtuals: {
+      thumbnailUrl: {
+        get() {
+          return `${getAssetUrl()}${this.movie?.thumbnail}`;
+        },
+      },
+    },
+    toJSON: { virtuals: true },
+  }
 );
 
 export default mongoose.model("Transaction", transactionSchema, "transactions");

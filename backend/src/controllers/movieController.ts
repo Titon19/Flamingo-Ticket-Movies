@@ -68,6 +68,7 @@ export const getMovies = async (req: Request, res: Response) => {
     });
   }
 };
+
 // export const getMovies = async (req: Request, res: Response) => {
 //   try {
 //     const movies = await Movie.find()
@@ -97,7 +98,9 @@ export const getMovies = async (req: Request, res: Response) => {
 
 export const postMovie = async (req: Request, res: Response) => {
   try {
-    if (!req.file) {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+    if (!files.thumbnail) {
       return res.status(400).json({
         data: null,
         message: "Thumbnail is required!",
@@ -105,10 +108,14 @@ export const postMovie = async (req: Request, res: Response) => {
       });
     }
 
+    const thumbnailFile = files.thumbnail[0];
+    const bannerFile = files.banner ? files.banner[0] : null;
+
     const parse = movieSchema.safeParse({
       title: req.body.title,
       genre: req.body.genre,
-      thumbnail: req.file.path.replace(/\\/g, "/"),
+      thumbnail: thumbnailFile.path.replace(/\\/g, "/"),
+      banner: bannerFile ? bannerFile.path.replace(/\\/g, "/") : null,
       theaters: req.body.theaters.split(", "),
       available: req.body.available === "1" ? true : false,
       description: req.body.description,
@@ -131,7 +138,8 @@ export const postMovie = async (req: Request, res: Response) => {
       genre: parse.data.genre,
       available: parse.data.available,
       theaters: parse.data.theaters,
-      thumbnail: req.file?.filename,
+      thumbnail: thumbnailFile?.filename,
+      banner: bannerFile?.filename,
       description: parse.data.description,
       price: parse.data.price,
       bonus: parse.data.bonus,
@@ -148,7 +156,7 @@ export const postMovie = async (req: Request, res: Response) => {
     console.log(error);
     return res.status(500).json({
       data: null,
-      message: "Failed to created genre",
+      message: "Failed to created movie",
       status: "Failed",
     });
   }
@@ -168,12 +176,20 @@ export const putMovie = async (req: Request, res: Response) => {
       });
     }
 
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+    const thumbnailFile = files?.thumbnail ? files.thumbnail[0] : null;
+    const bannerFile = files.banner ? files.banner[0] : null;
+
     const parse = movieSchema.safeParse({
       title: req.body.title,
       genre: req.body.genre,
-      thumbnail: req.file
-        ? req.file.path.replace(/\\/g, "/")
+      thumbnail: thumbnailFile
+        ? thumbnailFile.path.replace(/\\/g, "/")
         : oldMovie.thumbnail,
+      banner: bannerFile
+        ? bannerFile.path.replace(/\\/g, "/")
+        : oldMovie.banner,
       theaters: req.body.theaters.split(", "),
       available: req.body.available === "1" ? true : false,
       description: req.body.description,
@@ -190,16 +206,26 @@ export const putMovie = async (req: Request, res: Response) => {
       });
     }
 
-    if (req.file) {
-      const dirname = path.resolve();
-      const filepath = path.join(
-        dirname,
+    if (thumbnailFile && oldMovie.thumbnail) {
+      const thumbnailPath = path.resolve(
         "public/uploads/thumbnails",
-        oldMovie.thumbnail ?? ""
+        oldMovie.thumbnail
       );
+      if (
+        fs.existsSync(thumbnailPath) &&
+        fs.lstatSync(thumbnailPath).isFile()
+      ) {
+        fs.unlinkSync(thumbnailPath);
+      }
+    }
 
-      if (fs.existsSync(filepath)) {
-        fs.unlinkSync(filepath);
+    if (bannerFile && oldMovie.banner) {
+      const bannerPath = path.resolve(
+        "public/uploads/banners",
+        oldMovie.banner
+      );
+      if (fs.existsSync(bannerPath) && fs.lstatSync(bannerPath).isFile()) {
+        fs.unlinkSync(bannerPath);
       }
     }
 
@@ -222,7 +248,8 @@ export const putMovie = async (req: Request, res: Response) => {
       genre: parse.data.genre,
       available: parse.data.available,
       theaters: parse.data.theaters,
-      thumbnail: req.file ? req.file.filename : oldMovie.thumbnail,
+      thumbnail: thumbnailFile ? thumbnailFile.filename : oldMovie.thumbnail,
+      banner: bannerFile ? bannerFile.filename : oldMovie.banner,
       description: parse.data.description,
       price: parse.data.price,
       bonus: parse.data.bonus,
@@ -273,16 +300,32 @@ export const deleteMovie = async (req: Request, res: Response) => {
       });
     }
 
-    if (req.file) {
+    if (deletedData.thumbnail) {
       const dirname = path.resolve();
-      const filepath = path.join(
+      const thumbnailPath = path.join(
         dirname,
         "public/uploads/thumbnails",
         deletedData.thumbnail ?? ""
       );
 
-      if (fs.existsSync(filepath)) {
-        fs.unlinkSync(filepath);
+      if (
+        fs.existsSync(thumbnailPath) &&
+        fs.lstatSync(thumbnailPath).isFile()
+      ) {
+        fs.unlinkSync(thumbnailPath);
+      }
+    }
+
+    if (deletedData.banner) {
+      const dirname = path.resolve();
+      const bannerPath = path.join(
+        dirname,
+        "public/uploads/banners",
+        deletedData.banner ?? ""
+      );
+
+      if (fs.existsSync(bannerPath) && fs.lstatSync(bannerPath).isFile()) {
+        fs.unlinkSync(bannerPath);
       }
     }
 

@@ -4,6 +4,9 @@ import { transactionSchema } from "../utils/zodSchema";
 import Wallet from "../models/Wallet";
 import Transaction from "../models/Transaction";
 import TransactionSeat from "../models/TransactonSeat";
+import Movie from "../models/Movie";
+import Genre from "../models/Genre";
+import Theater from "../models/Theater";
 
 export const transactionTicket = async (req: CustomRequest, res: Response) => {
   try {
@@ -20,6 +23,16 @@ export const transactionTicket = async (req: CustomRequest, res: Response) => {
       });
     }
 
+    const movie = await Movie.findById(parse.movieId);
+    const genre = await Genre.findById(movie?.genre);
+    const theater = await Theater.findById(parse.theaterId);
+
+    // parse.movieTitle = movie?.title ?? "";
+    // parse.movieThumbnail = movie?.thumbnail ?? "";
+    // parse.movieGenre = genre?.name ?? "";
+    // parse.theaterName = theater?.name ?? "";
+    // parse.theaterCity = theater?.city ?? "";
+
     // Melakukan transaksi dan simpan data ke dalam collection transaction
     const transaction = new Transaction({
       bookingFee: parse.bookingFee,
@@ -27,8 +40,17 @@ export const transactionTicket = async (req: CustomRequest, res: Response) => {
       tax: parse.tax,
       total: parse.total,
       user: req.user?.id,
-      movie: parse.movieId,
-      theater: parse.theaterId,
+      movie: {
+        id: movie?._id,
+        title: movie?.title,
+        thumbnail: movie?.thumbnail,
+        genre: genre?.name,
+      },
+      theater: {
+        id: theater?._id,
+        name: theater?.name,
+        city: theater?.city,
+      },
       date: parse.date,
     });
 
@@ -56,7 +78,7 @@ export const transactionTicket = async (req: CustomRequest, res: Response) => {
       balance: currentBalance - parse.total,
     });
 
-    transaction.save();
+    await transaction.save();
 
     return res.status(200).json({
       message: "Successfully transaction ticket",
@@ -75,23 +97,24 @@ export const transactionTicket = async (req: CustomRequest, res: Response) => {
 export const getOrders = async (req: CustomRequest, res: Response) => {
   try {
     const orders = await Transaction.find({ user: req.user?.id })
-      .select("seats movie theater date status")
-      .populate({
-        path: "movie",
-        select: "title thumbnail genre -_id",
-        populate: {
-          path: "genre",
-          select: "name -_id",
-        },
-      })
+      .select("seats date status movie theater -_id")
+      // .select("")
+      // .populate({
+      //   path: "movie",
+      //   select: "title thumbnail genre -_id",
+      //   populate: {
+      //     path: "genre",
+      //     select: "name -_id",
+      //   },
+      // })
       .populate({
         path: "seats",
         select: "seat -_id",
-      })
-      .populate({
-        path: "theater",
-        select: "name city -_id",
       });
+    // .populate({
+    //   path: "theater",
+    //   select: "name city -_id",
+    // });
 
     return res.status(200).json({
       data: orders,
@@ -112,22 +135,11 @@ export const getOrderDetail = async (req: CustomRequest, res: Response) => {
   try {
     const { id } = req.params;
     const orderDetail = await Transaction.findById(id)
-      .select("seats movie theater date status")
-      .populate({
-        path: "movie",
-        select: "title thumbnail genre -_id",
-        populate: {
-          path: "genre",
-          select: "name -_id",
-        },
-      })
+      .select("seats movie theater -_id date status")
+
       .populate({
         path: "seats",
         select: "seat -_id",
-      })
-      .populate({
-        path: "theater",
-        select: "name city -_id",
       });
 
     return res.status(200).json({

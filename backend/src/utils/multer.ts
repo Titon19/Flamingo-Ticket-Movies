@@ -2,10 +2,19 @@ import type { Request } from "express";
 import multer, { type FileFilterCallback } from "multer";
 import { allowedFileTypes } from "./zodSchema";
 
-export const thumbnailStorage = (path = "public/uploads/thumbnails") =>
+export const uploadStorage = () =>
   multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, path);
+      // cb(null, path);
+      if (file.fieldname === "thumbnail") {
+        cb(null, "public/uploads/thumbnails");
+      } else if (file.fieldname === "banner") {
+        cb(null, "public/uploads/banners");
+      } else if (file.filename === "photo") {
+        cb(null, "public/uploads/photo");
+      } else {
+        cb(null, "public/uploads/others");
+      }
     },
 
     filename: (req, file, cb) => {
@@ -16,6 +25,22 @@ export const thumbnailStorage = (path = "public/uploads/thumbnails") =>
       cb(null, filename);
     },
   });
+
+// export const bannerStorage = (path = "public/uploads/banners") =>
+//   multer.diskStorage({
+//     destination: (req, file, cb) => {
+//       cb(null, path);
+//     },
+
+//     filename: (req, file, cb) => {
+//       const uniqueSuffix = `${Date.now()}-${Math.random() * 1e9}`;
+//       const filename = `${file.fieldname}-${uniqueSuffix}.${
+//         file.mimetype.split("/")[1]
+//       }`;
+//       cb(null, filename);
+//     },
+//   });
+
 export const photoStorage = (path = "public/uploads/photo") =>
   multer.diskStorage({
     destination: (req, file, cb) => {

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import useLogout from "@/hooks/useLogout";
 import { SkeletonUser } from "./nav-user-skeleton";
-import { useFetchUserAuth } from "@/hooks/admin/auth/useFetchUserAuth";
+import { useFetchUserAuth } from "@/hooks/useFetchUserAuth";
 import Image from "next/image";
 import DefaultUserIcon from "../app/assets/DefaultUserIcon.png";
 import Link from "next/link";

@@ -20,6 +20,7 @@ export const movieSchema = z
     available: z.boolean(),
     theaters: z.array(z.string().min(3)).min(1),
     thumbnail: z.string().min(3).nullable(),
+    banner: z.string().min(3).nullable(),
     description: z.string(),
     price: z.number(),
     bonus: z.string().optional(),
@@ -38,11 +39,9 @@ export const signupSchema = authSchema
   .extend({
     photo: z
       .union([
-        z
-          .any()
-          .refine((file) => file?.name, {
-            message: "Please upload your photo!",
-          }),
+        z.any().refine((file) => file?.name, {
+          message: "Please upload your photo!",
+        }),
         z.string(),
       ])
       .optional(),

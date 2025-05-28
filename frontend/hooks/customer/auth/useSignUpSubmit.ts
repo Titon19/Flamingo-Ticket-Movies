@@ -42,11 +42,15 @@ const useSignUpSubmit = () => {
       }
       formData.append("confirmPassword", data.confirmPassword);
       const response = await mutateAsync(formData);
-      console.log(response);
-      router.push("/sign-in");
-      toast.success(
-        "Sign up success! Please login with your email and password."
-      );
+      if (response.status === "Success") {
+        router.push("/auth/sign-in");
+        toast.success(
+          response.message ||
+            "Sign up success! Please login with your email and password."
+        );
+      } else {
+        toast.error(response.message || "Sign up failed!, please try again.");
+      }
     } catch (error) {
       console.log(error);
       toast.error("Sign up failed!, please try again.");

@@ -7,7 +7,7 @@ import Theater from "../models/Theater";
 export const getMovies = async (req: Request, res: Response) => {
   try {
     const data = await Movie.find()
-      .select("title thumbnail")
+      .select("title thumbnail banner description available")
       .populate({
         path: "genre",
         select: "name -_id",
@@ -15,7 +15,7 @@ export const getMovies = async (req: Request, res: Response) => {
       .limit(3);
 
     return res.status(200).json({
-      data: data,
+      data,
       message: "Successfully get movies",
       status: "Success",
     });
@@ -56,7 +56,7 @@ export const getMovieDetails = async (req: Request, res: Response) => {
     const seatRows = ["A", "B", "C"];
 
     for (let indexHuruf = 0; indexHuruf < seatRows.length; indexHuruf++) {
-      for (let seatNumber = 0; seatNumber <= 5; seatNumber++) {
+      for (let seatNumber = 1; seatNumber <= 5; seatNumber++) {
         seats.push({
           seat: `${seatRows[indexHuruf]}${seatNumber}`,
           isBooked: false,
@@ -77,7 +77,14 @@ export const getMovieDetails = async (req: Request, res: Response) => {
       message: "Successfully retrieved movie details",
       status: "Success",
     });
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      data: null,
+      message: "Failed to get movie details",
+      status: "Failed",
+    });
+  }
 };
 
 export const getAvailableSeats = async (req: Request, res: Response) => {
@@ -87,7 +94,7 @@ export const getAvailableSeats = async (req: Request, res: Response) => {
 
     const transactions = await Transaction.find({
       date: date?.toString().replace("+", " "),
-      movie: movieId,
+      "movie.id": movieId,
     })
       .select("seats")
       .populate({
@@ -96,9 +103,9 @@ export const getAvailableSeats = async (req: Request, res: Response) => {
       });
 
     const seats = [];
-    for (const transaction of transactions) {
-      seats.push(...transaction.seats);
-      // ...transaction.seats artinya adalah setiap object dalam array yang di looping di dalam array transactions
+
+    for (const seat of transactions) {
+      seats.push(...seat.seats);
     }
 
     return res.status(200).json({
@@ -115,6 +122,43 @@ export const getAvailableSeats = async (req: Request, res: Response) => {
     });
   }
 };
+// export const getAvailableSeats = async (req: Request, res: Response) => {
+//   try {
+//     const { movieId } = req.params;
+//     const { date } = req.query;
+
+//     const transactions = await Transaction.find({
+//       // date: decodeURIComponent(date?.toString() || ""),
+//       // date: date?.toString().replace("+", " "),
+//       date: date,
+//       movie: movieId,
+//     })
+//       .select("seats")
+//       .populate({
+//         path: "seats",
+//         select: "seat",
+//       });
+
+//     const seats = [];
+//     for (const transaction of transactions) {
+//       seats.push(...transaction.seats);
+//       // ...transaction.seats artinya adalah setiap object dalam array yang di looping di dalam array transactions
+//     }
+
+//     return res.status(200).json({
+//       data: seats,
+//       message: "Successfully retrieved available seats",
+//       status: "Success",
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({
+//       data: null,
+//       message: "Failed to get available seats",
+//       status: "Failed",
+//     });
+//   }
+// };
 
 export const getMovieFilter = async (req: Request, res: Response) => {
   const { genreId } = req.params;
@@ -133,7 +177,10 @@ export const getMovieFilter = async (req: Request, res: Response) => {
     const theaterLists = await Theater.find({ city });
     const theaterIds = theaterLists.map((theater) => theater.id);
 
-    filterQuery = { ...filterQuery, $in: [...theaterIds] };
+    // filterQuery = { ...filterQuery, $in: [...theaterIds] };
+    filterQuery.theaters = {
+      $in: theaterIds,
+    };
   }
 
   if (theaters) {
@@ -144,8 +191,30 @@ export const getMovieFilter = async (req: Request, res: Response) => {
     };
   }
 
+  // if (city) {
+  //   const cityTheaters = await Theater.find({ city });
+  //   const cityTheaterIds = cityTheaters.map((theater) => theater.id);
+
+  //   if (theaters) {
+  //     const selectedTheaterIds = (theaters as string[]).map((id) => id);
+  //     const validTheaterIds = cityTheaterIds.filter((id) =>
+  //       selectedTheaterIds.includes(id)
+  //     );
+
+  //     filterQuery.theaters = { $in: validTheaterIds };
+  //   } else {
+  //     filterQuery.theaters = { $in: cityTheaterIds };
+  //   }
+  // } else if (theaters) {
+  //   const selectedTheaterIds = (theaters as string[]).map((id) => id);
+  //   filterQuery.theaters = { $in: selectedTheaterIds };
+  // }
+
   if (availability === "true") {
     filterQuery.available = true;
+  }
+  if (availability === "false") {
+    filterQuery.available = false;
   }
 
   const data = await Movie.find({ ...filterQuery })

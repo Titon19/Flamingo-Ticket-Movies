@@ -1,18 +1,86 @@
 import { privateInstance } from "../../lib/axiosInstance";
 import type { baseResponse } from "../../types/response";
-import { z } from "zod";
-import type { Movie } from "./global.type";
+import type { Balance, Movie, MovieExplore, SelectedSeat } from "./global.type";
 import { Genre } from "../genres/genre.type";
+import { City, Theater } from "../theaters/theater.type";
+import { filterState } from "@/redux/features/filter/filterSlice";
+
+import { z } from "zod";
+
+export const filterSchema = z.object({
+  genre: z.string(),
+  city: z.string().optional(),
+  availability: z.string().optional(),
+  theaters: z.array(z.string()),
+});
+
+export type FilterValues = z.infer<typeof filterSchema>;
+
+export const transactionSchema = z
+  .object({
+    subtotal: z.number(),
+    total: z.number(),
+    bookingFee: z.number(),
+    tax: z.number(),
+    movieId: z.string(),
+    theaterId: z.string(),
+    seats: z.array(z.string()),
+    date: z.string(),
+  })
+  .strict();
+
+export type TransactionValues = z.infer<typeof transactionSchema>;
 
 export const getMovies = async (): Promise<baseResponse<Movie[]>> => {
-  const response = await privateInstance.get("/customer/v1/movies");
-  return response.data;
+  return await privateInstance.get("/customer/v1/movies");
 };
 
 export const getGenres = async (): Promise<
   baseResponse<Pick<Genre, "_id" | "name">[]>
 > => {
-  const response = await privateInstance.get("/customer/v1/genres");
-  console.log(response);
-  return response.data;
+  return await privateInstance.get("/customer/v1/genres");
+};
+
+export const getTheaters = async (): Promise<
+  baseResponse<Pick<Theater, "_id" | "name">[]>
+> => {
+  return await privateInstance.get("/customer/v1/theaters");
+};
+
+export const getCities = async (): Promise<baseResponse<City[]>> => {
+  return await privateInstance.get("/customer/v1/cities");
+};
+
+export const getMovieByGenre = async (
+  genreId: string,
+  params?: filterState
+): Promise<baseResponse<MovieExplore>> => {
+  return await privateInstance.get(`/customer/v1/browse-movies/${genreId}`, {
+    params: params,
+  });
+};
+
+export const getMovieDetails = async (
+  movieId: string
+): Promise<baseResponse<Movie>> => {
+  return await privateInstance.get(`/customer/v1/movies/${movieId}`);
+};
+
+export const checkSeats = async (
+  movieId: string,
+  date: string
+): Promise<baseResponse<SelectedSeat[]>> => {
+  return await privateInstance.get(`/customer/v1/check-seats/${movieId}`, {
+    params: { date },
+  });
+};
+
+export const getBalance = async (): Promise<baseResponse<Balance>> => {
+  return await privateInstance.get("/customer/v1/check-balance");
+};
+
+export const buyTicket = async (
+  data: TransactionValues
+): Promise<baseResponse<TransactionValues>> => {
+  return await privateInstance.post("/customer/v1/transaction/buy", data);
 };

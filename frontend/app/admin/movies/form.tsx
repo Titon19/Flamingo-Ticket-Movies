@@ -35,7 +35,6 @@ const FormMovie = ({ itemId }: { itemId?: string }) => {
     handleFileChange,
     preview,
     selectedTheaters,
-
     genres,
     genreSelectorLoading,
     theaters,
@@ -96,12 +95,12 @@ const FormMovie = ({ itemId }: { itemId?: string }) => {
                       type="file"
                       disabled={isLoading}
                       placeholder="Upload Thumbnail"
-                      onChange={handleFileChange}
+                      onChange={(e) => handleFileChange(e, "thumbnail")}
                     />
                   </FormControl>
-                  {preview ? (
+                  {preview.thumbnail ? (
                     <img
-                      src={preview}
+                      src={preview.thumbnail}
                       alt={"thumbnail"}
                       className="w-[100px] h-[150px] object-cover  rounded-md"
                     />
@@ -110,6 +109,40 @@ const FormMovie = ({ itemId }: { itemId?: string }) => {
                       <img
                         src={detail?.thumbnailUrl}
                         alt={"thumbnail"}
+                        className="w-[100px] h-[150px] object-cover  rounded-md"
+                      />
+                    )
+                  )}
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="banner"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Banner</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      disabled={isLoading}
+                      placeholder="Upload Banner"
+                      onChange={(e) => handleFileChange(e, "banner")}
+                    />
+                  </FormControl>
+                  {preview.banner ? (
+                    <img
+                      src={preview.banner}
+                      alt={"banner"}
+                      className="w-[100px] h-[150px] object-cover  rounded-md"
+                    />
+                  ) : (
+                    detail?.banner && (
+                      <img
+                        src={detail?.bannerUrl}
+                        alt={"banner"}
                         className="w-[100px] h-[150px] object-cover  rounded-md"
                       />
                     )

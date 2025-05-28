@@ -21,14 +21,10 @@ const useSignInSubmit = () => {
     try {
       const response = await mutateAsync(data);
 
-      if (response.status === "Success") {
-        toast.success(
-          response.message ||
-            "Successfully logged in, redirecting to home page..."
-        );
-      } else {
-        toast.error(response.message || "Sign in failed!, please try again.");
-      }
+      toast.success(
+        response.message ||
+          "Successfully logged in, redirecting to home page..."
+      );
       router.push("/home");
     } catch (error) {
       console.log(error);

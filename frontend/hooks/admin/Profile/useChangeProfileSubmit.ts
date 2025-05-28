@@ -6,7 +6,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-import { useFetchUserAuth } from "../auth/useFetchUserAuth";
+import { useFetchUserAuth } from "../../useFetchUserAuth";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 

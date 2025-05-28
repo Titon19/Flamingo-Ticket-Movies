@@ -29,6 +29,10 @@ const movieSchema = new Schema(
       type: String,
       required: true,
     },
+    banner: {
+      type: String,
+      required: true,
+    },
     price: Number,
     available: Boolean,
     bonus: String,
@@ -37,7 +41,12 @@ const movieSchema = new Schema(
     virtuals: {
       thumbnailUrl: {
         get() {
-          return `${getAssetUrl()}${this.thumbnail}`;
+          return `${getAssetUrl("thumbnails")}${this.thumbnail}`;
+        },
+      },
+      bannerUrl: {
+        get() {
+          return `${getAssetUrl("banners")}${this.banner}`;
         },
       },
     },
